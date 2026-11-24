@@ -14,6 +14,8 @@ Establish a secure application foundation where individuals can manage their acc
 - [x] 004. Establish data persistence and database migrations.
 - [ ] 005. Implement secure user registration and authentication.
 - [ ] 006. Implement user accounts and external identity management.
+- [ ] 006.1. Build the email code sign-in and sign-out web interface.
+- [ ] 006.2. Show the signed-in account and protect private web pages.
 - [ ] 007. Establish authenticated execution context across application operations.
 - [ ] 008. Implement resource ownership and access authorization.
 - [ ] 009. Establish security auditing and sensitive information protection.

@@ -8,10 +8,10 @@ from pydantic import BaseModel, field_validator
 
 from scibiom_api.transport.request_id import REQUEST_ID_HEADER
 from scibiom_core.kernel.errors import (
-    ConflictError,
+    AuthenticationError,
     DomainError,
-    NotFoundError,
     RuleViolationError,
+    UnavailableError,
 )
 
 if TYPE_CHECKING:
@@ -25,13 +25,13 @@ PROBLEM_CONTENT_TYPE = "application/problem+json"
 PERSONAL_VALUE = "secret-personal-value"
 SUBMITTED_VALUE = "not-a-number-12345"
 SUBMITTED_NOTE = "diagnosis-hypertension"
-WORKSPACE_NOT_FOUND = "Workspace not found"
+DOMAIN_ERROR_DETAIL = "Sign-in code is not valid"
 UNREGISTERED_STATUS = 499
 UNHANDLED_EXCEPTION_MESSAGE = "unhandled_exception"
 DOMAIN_ERRORS: dict[str, type[DomainError]] = {
-    "not-found": NotFoundError,
-    "conflict": ConflictError,
     "rule-violation": RuleViolationError,
+    "authentication": AuthenticationError,
+    "unavailable": UnavailableError,
     "bare": DomainError,
 }
 
@@ -49,7 +49,7 @@ class Submission(BaseModel):
 def _add_error_routes(app: FastAPI) -> None:
     @app.get("/test/domain-error/{kind}")
     async def domain_error(kind: str) -> None:
-        raise DOMAIN_ERRORS[kind](WORKSPACE_NOT_FOUND)
+        raise DOMAIN_ERRORS[kind](DOMAIN_ERROR_DETAIL)
 
     @app.get("/test/boom")
     async def boom() -> None:
@@ -100,9 +100,9 @@ def problem_client(
 @pytest.mark.parametrize(
     ("kind", "status", "code"),
     [
-        ("not-found", HTTPStatus.NOT_FOUND, "not_found"),
-        ("conflict", HTTPStatus.CONFLICT, "conflict"),
         ("rule-violation", HTTPStatus.UNPROCESSABLE_CONTENT, "rule_violation"),
+        ("authentication", HTTPStatus.UNAUTHORIZED, "authentication_failed"),
+        ("unavailable", HTTPStatus.SERVICE_UNAVAILABLE, "unavailable"),
         ("bare", HTTPStatus.BAD_REQUEST, "domain_error"),
     ],
 )
@@ -112,7 +112,7 @@ def test_domain_errors_map_to_problems(
     response = problem_client.get(f"/test/domain-error/{kind}")
 
     _assert_problem(response, status, code)
-    assert response.json()["detail"] == WORKSPACE_NOT_FOUND
+    assert response.json()["detail"] == DOMAIN_ERROR_DETAIL
 
 
 def test_unhandled_error_becomes_an_opaque_500_with_request_id(

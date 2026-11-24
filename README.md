@@ -15,7 +15,7 @@ make migrate
 make dev
 ```
 
-When `make dev` reports that both servers are ready, open http://localhost:3000 for the web app and http://127.0.0.1:8000/docs for the API documentation, which is served only in the `local` and `test` environments. Run `make help` to list every other target, and `make check` to run everything CI runs.
+When `make dev` reports that both servers are ready, open http://localhost:3000 for the web app and http://localhost:8000/docs for the API documentation, which is served only in the `local` and `test` environments. Run `make help` to list every other target, and `make check` to run everything CI runs.
 
 ## Configuration
 
@@ -24,7 +24,7 @@ Settings come from the root `.env`, which `make setup` creates from `.env.exampl
 ## Documentation
 
 - [AGENTS.md](AGENTS.md) is the engineering contract for every contributor, human or AI.
-- [docs/technical/ARCHITECTURE.md](docs/technical/ARCHITECTURE.md) maps the system and its dependency direction.
+- [docs/technical/ARCHITECTURE.md](docs/technical/ARCHITECTURE.md) holds the repository layout and the rules the code follows.
 - [docs/technical/](docs/technical/) explains how individual mechanisms work today.
 - [docs/technical/adr/](docs/technical/adr/) records decisions that are costly to reverse, with the alternatives rejected.
 - [docs/technical/database.dbml](docs/technical/database.dbml) is the current database schema.

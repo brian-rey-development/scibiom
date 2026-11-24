@@ -6,22 +6,35 @@ from typing import TYPE_CHECKING, override
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from scibiom_api.bootstrap.container import Container, ContainerFactory, build_container
-from scibiom_api.bootstrap.settings import ApiSettings, CorsSettings, Environment
+from scibiom_api.bootstrap.settings import (
+    ApiSettings,
+    CorsSettings,
+    Environment,
+    IdentitySettings,
+)
 from scibiom_api.main import create_app
 from scibiom_infrastructure.database.settings import DatabaseSettings
+from scibiom_infrastructure.email.settings import EmailSettings
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
 
     from fastapi import FastAPI
-    from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
+    from pydantic_settings import PydanticBaseSettingsSource
 
     from scibiom_core.kernel.readiness import ReadinessCheck
 
 UVICORN_LOGGER_NAMES = ("uvicorn", "uvicorn.error", "uvicorn.access")
 UNREACHABLE_DATABASE_URL = "postgresql+psycopg://user:pass@127.0.0.1:1/unused"
+IDENTITY_KEY = "test-identity-secret-0123456789-abcdefghij"
+EMAIL_HOST = "smtp.scibiom.test"
+EMAIL_PORT = 465
+EMAIL_USERNAME = "resend"
+EMAIL_API_KEY = "test-email-password"
+EMAIL_SENDER = "no-reply@scibiom.test"
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +52,14 @@ class FailingCheck:
     async def probe(self) -> None:
         message = "probe failed"
         raise ConnectionError(message)
+
+
+class _LocalDatabase(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_prefix="SCIBIOM_", env_file=".env", env_nested_delimiter="__", extra="ignore"
+    )
+
+    database: DatabaseSettings
 
 
 class IsolatedApiSettings(ApiSettings):
@@ -86,6 +107,15 @@ def settings_factory() -> Callable[[Environment, tuple[str, ...], str], ApiSetti
             environment=environment,
             database=DatabaseSettings(url=SecretStr(database_url)),
             cors=CorsSettings(allowed_origins=origins),
+            identity=IdentitySettings(secret=SecretStr(IDENTITY_KEY)),
+            email=EmailSettings(
+                host=EMAIL_HOST,
+                port=EMAIL_PORT,
+                sender=EMAIL_SENDER,
+                username=EMAIL_USERNAME,
+                password=SecretStr(EMAIL_API_KEY),
+                use_tls=True,
+            ),
         )
 
     return build
@@ -143,3 +173,9 @@ def client(
     passing_check: ReadinessCheck,
 ) -> TestClient:
     return client_for_checks((passing_check,))
+
+
+@pytest.fixture
+def local_database_url() -> str:
+    """The compose Postgres URL for the application role, read without the rest of `.env`."""
+    return _LocalDatabase.model_validate({}).database.url.get_secret_value()

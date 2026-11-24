@@ -7,10 +7,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from scibiom_api.transport.problems import FieldError, known_status, problem_response
 from scibiom_core.kernel.errors import (
-    ConflictError,
+    AuthenticationError,
     DomainError,
-    NotFoundError,
     RuleViolationError,
+    UnavailableError,
 )
 
 if TYPE_CHECKING:
@@ -22,9 +22,9 @@ if TYPE_CHECKING:
 
 DOMAIN_ERROR_STATUS: Mapping[type[DomainError], int] = MappingProxyType(
     {
-        NotFoundError: HTTPStatus.NOT_FOUND,
-        ConflictError: HTTPStatus.CONFLICT,
         RuleViolationError: HTTPStatus.UNPROCESSABLE_CONTENT,
+        AuthenticationError: HTTPStatus.UNAUTHORIZED,
+        UnavailableError: HTTPStatus.SERVICE_UNAVAILABLE,
     }
 )
 FALLBACK_DOMAIN_ERROR_STATUS = HTTPStatus.BAD_REQUEST

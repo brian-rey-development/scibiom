@@ -14,13 +14,13 @@ class DomainError(Exception):
         self.message = message
 
 
-class NotFoundError(DomainError):
-    code = "not_found"
-
-
-class ConflictError(DomainError):
-    code = "conflict"
-
-
 class RuleViolationError(DomainError):
     code = "rule_violation"
+
+
+class AuthenticationError(DomainError):
+    code = "authentication_failed"
+
+
+class UnavailableError(DomainError):
+    code = "unavailable"

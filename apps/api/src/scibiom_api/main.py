@@ -8,6 +8,7 @@ from scibiom_api.bootstrap.container import ContainerFactory, build_container
 from scibiom_api.bootstrap.lifespan import build_lifespan
 from scibiom_api.bootstrap.log_setup import configure_api_logging
 from scibiom_api.bootstrap.settings import ApiSettings, load_settings
+from scibiom_api.routes.auth import router as auth_router
 from scibiom_api.routes.health import router as health_router
 from scibiom_api.transport.error_handlers import install_error_handlers
 from scibiom_api.transport.middleware import install_middleware
@@ -17,6 +18,7 @@ API_TITLE = "Scibiom API"
 API_VERSION = version("scibiom-api")
 DOCS_URL = "/docs"
 OPENAPI_URL = "/openapi.json"
+V1_PREFIX = "/v1"
 APP_RESPONSES: dict[int | str, dict[str, Any]] = {
     HTTPStatus.INTERNAL_SERVER_ERROR.value: {"model": ProblemDetails},
 }
@@ -40,5 +42,17 @@ def create_app(
     )
     install_middleware(app, active_settings)
     install_error_handlers(app)
-    app.include_router(health_router)
+    _include_routes(app)
     return app
+
+
+def openapi_schema() -> dict[str, Any]:
+    """Describe the API contract, which depends on the routes and never on settings."""
+    app = FastAPI(title=API_TITLE, version=API_VERSION, responses=APP_RESPONSES)
+    _include_routes(app)
+    return app.openapi()
+
+
+def _include_routes(app: FastAPI) -> None:
+    app.include_router(health_router)
+    app.include_router(auth_router, prefix=V1_PREFIX)

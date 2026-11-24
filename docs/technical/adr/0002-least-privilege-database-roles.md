@@ -16,7 +16,7 @@ PostgreSQL row-level security will isolate tenants once Identity & Workspace exi
 
 ## Decision
 
-The API connects as `scibiom_app`, which can read and write rows but cannot create, alter or drop schema objects. Migrations run as `scibiom_owner`, which owns the database and every context schema, and the API never receives its credentials. Migration state lives in a schema the application role cannot touch, so it can neither read nor rewrite which migrations have run. [database.md](../database.md) describes the wiring.
+The API connects as `scibiom_app`, which can read and write rows but cannot create, alter or drop schema objects. Migrations run as `scibiom_owner`, which owns the database and every context schema, and the API never receives its credentials. Migration state lives in a schema the application role cannot touch, so it can neither read nor rewrite which migrations have run. [ARCHITECTURE.md](../ARCHITECTURE.md) shows how the roles and grants are wired.
 
 ```mermaid
 flowchart LR

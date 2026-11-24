@@ -3,12 +3,16 @@ name = "scibiom-infrastructure"
 version = "0.1.0"
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "scibiom-core",
     "sqlalchemy[asyncio]>=2.1.9",
     "psycopg[binary]>=3.3.9",
     "pydantic>=2.14.4",
     "pydantic-settings>=2.16.3",
     "alembic>=1.20.1",
 ]
+
+[tool.uv.sources]
+scibiom-core = { workspace = true }
 
 [tool.deptry.per_rule_ignores]
 DEP002 = ["psycopg"] # SQLAlchemy loads the driver from the postgresql+psycopg URL

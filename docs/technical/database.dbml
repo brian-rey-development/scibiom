@@ -21,3 +21,48 @@ Table alembic.alembic_version {
 
   Note: 'Migration state. Created by Alembic in a schema env.py creates as scibiom_owner.'
 }
+
+Table identity.accounts {
+  id uuid [pk, not null]
+  workspace_id uuid [unique, not null]
+  email text [unique, not null, note: 'Trimmed and lowercased, enforced by a check constraint.']
+  created_at timestamptz [not null]
+
+  Note: 'A registered person and the personal workspace they own.'
+}
+
+Table identity.sessions {
+  id uuid [pk, not null]
+  account_id uuid [not null]
+  token_hash bytea [unique, not null, note: 'SHA-256 of the session token, 32 bytes.']
+  created_at timestamptz [not null]
+  expires_at timestamptz [not null, note: 'Fixed 14 days after created_at, never renewed.']
+
+  indexes {
+    account_id
+    expires_at
+  }
+
+  Note: 'Opaque server-side sessions. Revoking a session deletes its row.'
+}
+
+Table identity.auth_challenges {
+  id uuid [pk, not null]
+  email text [not null, note: 'Trimmed and lowercased, enforced by a check constraint.']
+  code_mac bytea [not null, note: 'HMAC-SHA256 of the code, 32 bytes.']
+  attempts_left smallint [not null, note: 'Between 0 and 3.']
+  created_at timestamptz [not null]
+  expires_at timestamptz [not null, note: 'After created_at.']
+  consumed_at timestamptz [note: 'A challenge is never both consumed and invalidated.']
+  invalidated_at timestamptz
+
+  indexes {
+    (email, created_at)
+    expires_at
+    email [unique, note: 'Partial, only where consumed_at and invalidated_at are null, so an address has at most one active challenge']
+  }
+
+  Note: 'One-time email codes for signing in. No foreign keys, because a challenge exists before its account does.'
+}
+
+Ref: identity.sessions.account_id > identity.accounts.id [delete: cascade]

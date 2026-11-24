@@ -4,51 +4,7 @@ Scibiom is a personal health research and protocols assistant that will hold sen
 
 ## Architecture
 
-The backend is a modular monolith built on ports and adapters. Business logic lives in one framework-free package, every entry point (REST today, MCP, agent tools and workflows later) is a thin adapter over the same use cases, and every external system sits behind a port the core defines. `docs/technical/ARCHITECTURE.md` maps the layout, and `docs/technical/adr/0001-modular-monolith.md` records why.
-
-## Package layout
-
-```text
-packages/core/src/scibiom_core/
-  kernel/                    primitives more than one context needs
-  <context>/
-    domain/
-    use_cases/               one module per use case
-    ports/                   one module per port
-packages/infrastructure/src/scibiom_infrastructure/
-  database/
-    tables/<context>/        one module per table
-    repositories/<context>/  one module per repository
-    migrations/
-  auth/                      one module per provider, such as supabase.py
-  observability/
-```
-
-A folder exists only when it groups several modules. Something that fits in one module stays a module, and no folder is created ahead of its code.
-
-New apps and packages (`worker`, `mcp`, `ai`, `integrations`) are created by the first capability that needs them.
-
-## Python dependency rules
-
-1. Apps import packages, packages never import apps.
-2. `core` imports only the standard library. `infrastructure` may import `core` but never FastAPI, Starlette or Uvicorn.
-3. Bounded contexts never import each other, in core or in infrastructure's `tables/` and `repositories/`. A context that needs another's data declares a port, and the composition root wires it.
-4. Inside a context, `domain` imports only `kernel`, and `use_cases` imports `domain` and `ports`.
-5. No Python module or package is named `utils`, `helpers`, `common`, `misc`, `shared` or `types`.
-
-Import Linter and `make arch` enforce rules 1, 2 and 5. Rules 3 and 4 get contracts with the first context.
-
-## Where types live
-
-| Kind | Location |
-|---|---|
-| Domain types | `core/<context>/domain`, private to the context |
-| Use case inputs and outputs | `core/<context>/use_cases` |
-| Wire schemas (Pydantic) | the app that serves them |
-| Persistence rows | `infrastructure/database/tables/<context>/` |
-| Frontend API types | generated from `apps/api/openapi.json`, never hand-written |
-
-Each context owns one Postgres schema, foreign keys never cross schemas, IDs are UUIDv7 from `uuid.uuid7()`, and tenant-owned rows carry `workspace_id`.
+The backend is a modular monolith built on ports and adapters. Business logic lives in one framework-free package, every entry point (REST today, MCP, agent tools and workflows later) is a thin adapter over the same use cases, and every external system sits behind a port the core defines. `docs/technical/ARCHITECTURE.md` holds the repository layout and the dependency, type and data rules, and they bind every change as much as this file does.
 
 ## Code conventions
 
@@ -57,8 +13,39 @@ Each context owns one Postgres schema, foreign keys never cross schemas, IDs are
 - Dependencies are passed explicitly. No singletons, service locators or import-time side effects.
 - Empty `__init__.py` files, absolute imports.
 - Comments only for a non-obvious why. Docstrings only on public contracts.
-- Tests target behavior. Domain tests need no fixtures, use cases use in-memory fakes, adapters run against real Postgres under the `integration` marker.
+- Tests follow the Testing section below.
 - Never add a dependency, abstraction, option or file the current capability does not use.
+
+## Testing
+
+A test earns its place only when a bug in our code can make it fail. Each test is named as a sentence about the behavior it proves, so the test names of a module read as its rules.
+
+| Layer | Proves | How |
+|---|---|---|
+| Domain | The rules of one model or value | Plain calls, no fixtures |
+| Use case | Behavior across ports, commit and rollback included | In-memory fakes with real transaction semantics, a fixed clock, never mocks |
+| Adapter | Our SQL, migrations and provider protocol | Real Postgres and Mailpit under the `integration` marker |
+| API | Status codes, headers, cookies, validation and error bodies | `TestClient` with use cases replaced through the container factory |
+| End to end | One flow through every layer | One `integration` test per flow |
+
+Test these:
+
+- Every rule in the spec at its boundary, meaning the last allowed value and the first rejected one.
+- Every error path, and that failures stay indistinguishable wherever the spec requires it.
+- Security properties, such as nothing sensitive reaching logs, errors or responses.
+- Persisted formats that must never change, by pinning their exact encoding.
+- Concurrency and transaction guarantees, against real Postgres with independent connections.
+
+Do not test these:
+
+- The standard library or a framework itself, such as Pydantic defaults, required fields and `Field` bounds, `secrets` randomness or `uuid7` uniqueness.
+- Dataclass mechanics, such as equality, immutability or `replace`.
+- Private functions and attributes. Reach behavior through the public surface of the module.
+- A behavior that another test at the same layer already proves.
+
+Each test covers one behavior in three blocks, arrange, act and assert, separated by blank lines. Tests are deterministic, with fixed clocks, no sleeps and no network outside `integration`, and integration tests create unique data so reruns within the same hour pass. Before a new test lands, break the rule it guards once and watch it fail.
+
+Tests mirror the source folders of their package, integration tests end in `_integration.py`, and fakes shared by a folder live in its `conftest.py`.
 
 ## Security invariants
 
@@ -67,19 +54,10 @@ Each context owns one Postgres schema, foreign keys never cross schemas, IDs are
 - CORS origins are explicit, and staging and production require `https`.
 - Logs never contain bodies, query strings, headers other than the request ID, or exception messages.
 - Errors are RFC 9457 problem details with the request ID and no internal detail or submitted input.
-- The API connects as `scibiom_app` (rows only), migrations as `scibiom_owner` (schema owner).
-- Database access is an allowlist. The migration that creates a context schema grants `scibiom_app` access in the same migration, and nothing grants it globally.
-
-  ```sql
-  GRANT USAGE ON SCHEMA <context> TO scibiom_app;
-  ALTER DEFAULT PRIVILEGES IN SCHEMA <context>
-    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO scibiom_app;
-  ```
-
-  Grant fewer privileges where the context needs it, such as `INSERT` only for an append-only audit log. `test_schema_privileges_integration.py` fails CI for any schema without these grants.
+- The API connects as `scibiom_app` and migrations as `scibiom_owner`, and database access is an allowlist granted per schema, as the Data section of `ARCHITECTURE.md` shows.
 - Interactive API docs exist only in `local` and `test`.
 
-Authentication, tenant isolation, row-level security, consent, audit logging and data retention are future capabilities. Never add placeholders for them or claim healthcare compliance.
+Authentication follows `docs/specs/2026-11-24-identity-and-authentication-design.md` and ADR 0004. Tenant isolation, row-level security, consent, audit logging and data retention are future capabilities. Never add placeholders for them or claim healthcare compliance.
 
 ## Workflow
 
@@ -91,4 +69,16 @@ make dev        # API on :8000, web on :3000
 make check      # everything CI runs
 ```
 
-Every change passes `make check`. Decisions that are hard to reverse get an ADR in `docs/technical/adr/`, written in English, and the reasoning stays there. How a mechanism works today goes in `docs/technical/`, the system map in `docs/technical/ARCHITECTURE.md`, and any table or schema change updates `docs/technical/database.dbml` in the same change.
+Every change passes `make check`.
+
+## Documentation
+
+Each document has one job, and nothing is written twice.
+
+| Document | Job |
+|---|---|
+| `docs/technical/ARCHITECTURE.md` | The repository layout and the rules the code follows, updated in the same change as the code |
+| `docs/technical/adr/` | Macro decisions that are costly to reverse, with the alternatives rejected, never policy values or implementation detail |
+| `docs/specs/` | Designs for the owner to review before a capability is built, not kept in sync after it merges |
+| `docs/technical/database.dbml` | The current schema, updated by every table change |
+| `docs/technical/BACKLOG.md` | Known technical debt and when to pay it |

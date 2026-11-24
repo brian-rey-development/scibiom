@@ -3,8 +3,14 @@ from sqlalchemy import NullPool, create_engine
 from sqlalchemy.schema import CreateSchema
 
 from scibiom_infrastructure.database.settings import MigrationSettings
+from scibiom_infrastructure.database.tables.identity.accounts import accounts
+from scibiom_infrastructure.database.tables.identity.auth_challenges import auth_challenges
+from scibiom_infrastructure.database.tables.identity.metadata import identity_metadata
+from scibiom_infrastructure.database.tables.identity.sessions import sessions
 
 VERSION_TABLE_SCHEMA = "alembic"
+# Importing each table registers it on the metadata that autogenerate compares against.
+MIGRATED_TABLES = (accounts, auth_challenges, sessions)
 
 
 def run_migrations_online() -> None:
@@ -19,7 +25,7 @@ def run_migrations_online() -> None:
         connection.commit()
         context.configure(
             connection=connection,
-            target_metadata=None,
+            target_metadata=identity_metadata,
             include_schemas=True,
             version_table_schema=VERSION_TABLE_SCHEMA,
         )

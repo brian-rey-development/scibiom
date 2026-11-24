@@ -2,17 +2,20 @@ from enum import StrEnum
 from typing import Self
 from urllib.parse import parse_qs, urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from scibiom_infrastructure.database.settings import DatabaseSettings
+from scibiom_infrastructure.email.settings import EmailSettings
 from scibiom_infrastructure.observability.logging import LogLevel
 
 ALLOWED_ORIGIN_SCHEMES = frozenset({"http", "https"})
 HTTPS_SCHEME = "https"
+DEFAULT_PORTS = {"http": 80, "https": 443}
 SECURE_SSL_MODES = frozenset({"require", "verify-ca", "verify-full"})
 DEFAULT_READINESS_TIMEOUT_SECONDS = 2.0
 MAX_READINESS_TIMEOUT_SECONDS = 10
+MIN_SECRET_LENGTH = 32
 
 
 class Environment(StrEnum):
@@ -37,7 +40,9 @@ def _validate_origin(origin: str) -> str:
     if parsed.path or parsed.query or parsed.fragment:
         message = "CORS origins must not contain a path, query or fragment"
         raise ValueError(message)
-    return f"{parsed.scheme}://{parsed.netloc.lower()}"
+    # Browsers omit the default port from Origin, so a configured one would never match.
+    host = parsed.netloc.lower().removesuffix(f":{DEFAULT_PORTS[parsed.scheme]}")
+    return f"{parsed.scheme}://{host}"
 
 
 def _enforces_tls(database_url: str) -> bool:
@@ -57,6 +62,12 @@ class CorsSettings(BaseModel):
         return tuple(_validate_origin(origin) for origin in origins)
 
 
+class IdentitySettings(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", hide_input_in_errors=True)
+
+    secret: SecretStr = Field(min_length=MIN_SECRET_LENGTH)
+
+
 class ApiSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="SCIBIOM_",
@@ -71,6 +82,8 @@ class ApiSettings(BaseSettings):
     log_level: LogLevel = "INFO"
     database: DatabaseSettings
     cors: CorsSettings = CorsSettings()
+    identity: IdentitySettings
+    email: EmailSettings
     readiness_timeout_seconds: float = Field(
         default=DEFAULT_READINESS_TIMEOUT_SECONDS,
         gt=0,
@@ -86,6 +99,9 @@ class ApiSettings(BaseSettings):
             raise ValueError(message)
         if not _enforces_tls(self.database.url.get_secret_value()):
             message = "database URL must set sslmode to require, verify-ca or verify-full"
+            raise ValueError(message)
+        if not self.email.use_tls or self.email.password is None:
+            message = "email must use TLS and credentials outside local and test"
             raise ValueError(message)
         return self
 

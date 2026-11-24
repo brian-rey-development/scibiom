@@ -35,6 +35,14 @@ def test_disallowed_origin_gets_no_allow_origin_header(client: TestClient) -> No
     assert ALLOW_ORIGIN_HEADER not in response.headers
 
 
+def test_credentials_are_allowed_on_actual_requests_from_an_allowed_origin(
+    client: TestClient,
+) -> None:
+    response = client.get("/health/live", headers={"Origin": ALLOWED_ORIGIN})
+
+    assert response.headers[ALLOW_CREDENTIALS_HEADER] == "true"
+
+
 def test_request_id_header_is_exposed_to_browsers(client: TestClient) -> None:
     response = client.get("/health/live", headers={"Origin": ALLOWED_ORIGIN})
 
@@ -42,7 +50,7 @@ def test_request_id_header_is_exposed_to_browsers(client: TestClient) -> None:
     assert REQUEST_ID_HEADER in exposed
 
 
-def test_preflight_allows_only_get_with_the_request_id_header_and_no_credentials(
+def test_preflight_allows_get_post_and_delete_with_credentials_for_an_allowed_origin(
     client: TestClient,
 ) -> None:
     response = client.options(
@@ -56,7 +64,7 @@ def test_preflight_allows_only_get_with_the_request_id_header_and_no_credentials
 
     assert response.status_code == HTTPStatus.OK
     assert response.headers[ALLOW_ORIGIN_HEADER] == ALLOWED_ORIGIN
-    assert response.headers[ALLOW_METHODS_HEADER] == "GET"
+    assert response.headers[ALLOW_METHODS_HEADER] == "GET, POST, DELETE"
     allowed_headers = response.headers[ALLOW_HEADERS_HEADER].lower().split(", ")
     assert {"content-type", REQUEST_ID_HEADER} <= set(allowed_headers)
-    assert ALLOW_CREDENTIALS_HEADER not in response.headers
+    assert response.headers[ALLOW_CREDENTIALS_HEADER] == "true"

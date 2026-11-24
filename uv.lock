@@ -729,6 +729,7 @@ dependencies = [
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "scibiom-core" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
@@ -738,6 +739,7 @@ requires-dist = [
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.9" },
     { name = "pydantic", specifier = ">=2.14.4" },
     { name = "pydantic-settings", specifier = ">=2.16.3" },
+    { name = "scibiom-core", editable = "packages/core" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.1.9" },
 ]
 

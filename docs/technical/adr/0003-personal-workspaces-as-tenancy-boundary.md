@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -37,7 +37,7 @@ flowchart LR
     Tx -->|"scibiom_app"| Rls["RLS policy on every tenant table"]
 ```
 
-`identity.accounts` is the one exception. Authentication looks an account up by its external subject before the workspace is known, so that table is not scoped by workspace. It holds only the account ID, the workspace ID, the external subject and timestamps, never health data, and only the identity use cases read it.
+The `identity` schema is the one exception. Authentication looks an account up by its normalized email address before the workspace is known, so `identity.accounts` and the challenge and session tables beside it are not scoped by workspace. An account holds only its ID, the workspace ID, the email address and its creation time, never health data, and only the identity use cases read these tables. [ADR 0004](0004-passwordless-email-authentication.md) describes how authentication works.
 
 ## Alternatives considered
 

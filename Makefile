@@ -8,7 +8,7 @@ API_SCHEMA := apps/web/src/core/api/schema.d.ts
 
 .PHONY: help setup db-up db-down db-reset migrate migration dev dev-api dev-web \
 	lint format typecheck arch test test-unit test-integration test-web openapi \
-	openapi-check build-web check
+	openapi-check migration-check build-web check
 
 help: ## List available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -33,6 +33,9 @@ migrate: ## Apply migrations as the owner role
 migration: ## Autogenerate a migration, pass name=add_foo
 	@[ -n "$(name)" ] || { echo "Pass a migration name, for example make migration name=add_foo" >&2; exit 1; }
 	uv run alembic revision --autogenerate -m "$$name"
+
+migration-check: ## Fail if the table definitions and the applied migrations differ
+	uv run alembic check
 
 dev: ## Run API and web with reload
 	$(MAKE) -j2 dev-api dev-web
@@ -98,4 +101,4 @@ openapi-check: ## Fail if the committed API contract differs from the regenerate
 build-web: ## Build the web app for production
 	pnpm --filter web build
 
-check: lint arch openapi-check typecheck test test-web build-web ## Run everything CI runs, needs make db-up migrate first
+check: lint arch openapi-check typecheck migration-check test test-web build-web ## Run everything CI runs, needs make db-up migrate first

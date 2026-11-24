@@ -81,7 +81,7 @@ testpaths = ["apps/*/tests", "packages/*/tests"]
 addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-markers = ["integration: needs the local Postgres from compose.yaml"]
+markers = ["integration: needs the local Postgres and Mailpit from compose.yaml"]
 xfail_strict = true
 filterwarnings = ["error"]
 
@@ -116,3 +116,9 @@ name = "Infrastructure knows nothing about HTTP"
 type = "forbidden"
 source_modules = ["scibiom_infrastructure"]
 forbidden_modules = ["fastapi", "starlette", "uvicorn"]
+
+[[tool.importlinter.contracts]]
+name = "Identity layers run use cases, ports, then domain"
+type = "layers"
+containers = ["scibiom_core.identity"]
+layers = ["(use_cases)", "ports", "domain"]
