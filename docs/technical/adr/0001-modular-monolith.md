@@ -50,4 +50,4 @@ Extracting a context into its own service stays possible, since contexts talk to
 
 The cost is discipline. Contracts for context boundaries arrive with the first context, and until then review carries those rules. Cross-context queries must go through use cases and never through SQL joins.
 
-Technology that no capability needs yet, such as Temporal, pgvector and an MCP app, is added with the first feature that uses it and listed in the [roadmap](../roadmap.md). Redis, Kubernetes and microservices are not planned.
+Technology that no capability needs yet, such as Temporal, pgvector and an MCP app, is added with the first feature that uses it and listed in the [roadmap](../../roadmap.md). Redis, Kubernetes and microservices are not planned.

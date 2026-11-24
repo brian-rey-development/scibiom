@@ -46,10 +46,10 @@ Expected business failures are `DomainError` subclasses in the kernel, and each 
 
 ## Data
 
-Each bounded context will own one Postgres schema, with no foreign keys across schemas, UUIDv7 identifiers generated in Python, and a `workspace_id` on tenant-owned rows. The API connects as `scibiom_app` and migrations as `scibiom_owner`. The current schema is in [database.dbml](database.dbml), and the role model is explained in [technical/database.md](technical/database.md).
+Each bounded context will own one Postgres schema, with no foreign keys across schemas, UUIDv7 identifiers generated in Python, and a `workspace_id` on tenant-owned rows. The API connects as `scibiom_app` and migrations as `scibiom_owner`. The current schema is in [database.dbml](database.dbml), and the role model is explained in [database.md](database.md).
 
 ## Where to read next
 
 - [adr/](adr/) holds the decisions that are costly to reverse, with the alternatives that were rejected.
-- [technical/](technical/) explains how a mechanism works today.
-- [roadmap.md](roadmap.md) lists the planned capabilities in order.
+- The other pages in [this folder](.) explain how a mechanism works today.
+- [roadmap.md](../roadmap.md) lists the planned capabilities in order.

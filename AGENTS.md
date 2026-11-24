@@ -4,7 +4,27 @@ Scibiom is a personal health research and protocols assistant that will hold sen
 
 ## Architecture
 
-The backend is a modular monolith built on ports and adapters. Business logic lives in one framework-free package, every entry point (REST today, MCP, agent tools and workflows later) is a thin adapter over the same use cases, and every external system sits behind a port the core defines. `docs/ARCHITECTURE.md` maps the layout, and `docs/adr/0001-modular-monolith.md` records why. Inside a context, code is split into `domain/`, `use_cases/` and `ports.py`.
+The backend is a modular monolith built on ports and adapters. Business logic lives in one framework-free package, every entry point (REST today, MCP, agent tools and workflows later) is a thin adapter over the same use cases, and every external system sits behind a port the core defines. `docs/technical/ARCHITECTURE.md` maps the layout, and `docs/technical/adr/0001-modular-monolith.md` records why.
+
+## Package layout
+
+```text
+packages/core/src/scibiom_core/
+  kernel/                    primitives more than one context needs
+  <context>/
+    domain/
+    use_cases/               one module per use case
+    ports/                   one module per port
+packages/infrastructure/src/scibiom_infrastructure/
+  database/
+    tables/<context>/        one module per table
+    repositories/<context>/  one module per repository
+    migrations/
+  auth/                      one module per provider, such as supabase.py
+  observability/
+```
+
+A folder exists only when it groups several modules. Something that fits in one module stays a module, and no folder is created ahead of its code.
 
 New apps and packages (`worker`, `mcp`, `ai`, `integrations`) are created by the first capability that needs them.
 
@@ -12,7 +32,7 @@ New apps and packages (`worker`, `mcp`, `ai`, `integrations`) are created by the
 
 1. Apps import packages, packages never import apps.
 2. `core` imports only the standard library. `infrastructure` may import `core` but never FastAPI, Starlette or Uvicorn.
-3. Bounded contexts never import each other. A context that needs another's data declares a port, and the composition root wires it.
+3. Bounded contexts never import each other, in core or in infrastructure's `tables/` and `repositories/`. A context that needs another's data declares a port, and the composition root wires it.
 4. Inside a context, `domain` imports only `kernel`, and `use_cases` imports `domain` and `ports`.
 5. No Python module or package is named `utils`, `helpers`, `common`, `misc`, `shared` or `types`.
 
@@ -25,7 +45,7 @@ Import Linter and `make arch` enforce rules 1, 2 and 5. Rules 3 and 4 get contra
 | Domain types | `core/<context>/domain`, private to the context |
 | Use case inputs and outputs | `core/<context>/use_cases` |
 | Wire schemas (Pydantic) | the app that serves them |
-| Persistence rows | `infrastructure/<context>/tables.py` |
+| Persistence rows | `infrastructure/database/tables/<context>/` |
 | Frontend API types | generated from `apps/api/openapi.json`, never hand-written |
 
 Each context owns one Postgres schema, foreign keys never cross schemas, IDs are UUIDv7 from `uuid.uuid7()`, and tenant-owned rows carry `workspace_id`.
@@ -71,4 +91,4 @@ make dev        # API on :8000, web on :3000
 make check      # everything CI runs
 ```
 
-Every change passes `make check`. Decisions that are hard to reverse get an ADR in `docs/adr/`, and the reasoning stays there. How a mechanism works today goes in `docs/technical/`, the system map in `docs/ARCHITECTURE.md`, and any table or schema change updates `docs/database.dbml` in the same change.
+Every change passes `make check`. Decisions that are hard to reverse get an ADR in `docs/technical/adr/`, written in English, and the reasoning stays there. How a mechanism works today goes in `docs/technical/`, the system map in `docs/technical/ARCHITECTURE.md`, and any table or schema change updates `docs/technical/database.dbml` in the same change.
