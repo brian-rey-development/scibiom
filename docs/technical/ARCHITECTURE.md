@@ -6,7 +6,7 @@ Scibiom is a modular monolith whose business rules live in one framework-free pa
 
 ```mermaid
 flowchart LR
-    Web["apps/web<br/>Next.js"] -->|HTTP JSON| Api["apps/api<br/>FastAPI"]
+    Web["apps/web<br/>React + Vite"] -->|HTTP JSON| Api["apps/api<br/>FastAPI"]
     Api --> Infra["packages/infrastructure<br/>driven adapters"]
     Api --> Core["packages/core<br/>business logic"]
     Infra -->|implements ports| Core
@@ -19,7 +19,7 @@ Imports run in one direction, from `scibiom_api` to `scibiom_infrastructure` to 
 
 | Package | Responsibility today |
 |---|---|
-| `apps/web` | Browser UI that calls the API directly with TanStack Query. Its types are generated from `apps/api/openapi.json`, so the two sides cannot drift. See `apps/web/AGENTS.md`. |
+| `apps/web` | Single-page React app built with Vite, served as static files, that calls the API directly with TanStack Query. Its types are generated from `apps/api/openapi.json`, so the two sides cannot drift. See `apps/web/AGENTS.md`. |
 | `apps/api` | Composition root and REST adapter. It builds the container, installs middleware and maps domain errors to HTTP problem details. |
 | `packages/infrastructure` | Postgres engine and sessions, migrations, the database readiness probe, logging and request correlation. |
 | `packages/core` | The `kernel` package, which holds the domain error types and the readiness port. No bounded context exists yet. |

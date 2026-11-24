@@ -1,4 +1,4 @@
-export default function Home() {
+export function HomePage() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col justify-center gap-4 px-6 py-16">
       <h1 className="text-4xl font-semibold tracking-tight">Scibiom</h1>

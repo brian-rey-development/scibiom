@@ -4,7 +4,7 @@
   --color-background: var(--color-stone-50);
   --color-foreground: var(--color-stone-900);
   --color-muted: var(--color-stone-600);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {

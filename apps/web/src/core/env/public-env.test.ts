@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { parsePublicEnv } from "@core/env/public-env";
 
-const API_URL_KEY = "NEXT_PUBLIC_SCIBIOM_API_URL";
+const API_URL_KEY = "VITE_SCIBIOM_API_URL";
 const EXPECTED_ERROR = `${API_URL_KEY} must be an absolute http(s) URL`;
 
 describe("parsePublicEnv", () => {

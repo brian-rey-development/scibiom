@@ -18,23 +18,12 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@core/*": ["./src/core/*"],
       "@modules/*": ["./src/modules/*"],
       "@shared/*": ["./src/shared/*"]
-    }
+    },
+    "types": ["vite/client"]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-  ],
-  "exclude": ["node_modules"]
+  "include": ["src"]
 }

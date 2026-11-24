@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["oxc", "typescript", "react", "nextjs", "jsx-a11y", "import", "unicorn", "vitest"],
+  "plugins": ["oxc", "typescript", "react", "jsx-a11y", "import", "unicorn", "vitest"],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -9,7 +9,7 @@
   "options": {
     "typeAware": true
   },
-  "ignorePatterns": [".next", "next-env.d.ts", "src/core/api/schema.d.ts"],
+  "ignorePatterns": ["dist", "src/core/api/schema.d.ts"],
   "rules": {
     "typescript/no-explicit-any": "error",
     "typescript/no-non-null-assertion": "error",
@@ -19,7 +19,7 @@
     "import/no-unassigned-import": [
       "error",
       {
-        "allow": ["**/*.css"]
+        "allow": ["**/*.css", "@fontsource-variable/*"]
       }
     ],
     "react/react-in-jsx-scope": "off",

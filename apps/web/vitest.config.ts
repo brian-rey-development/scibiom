@@ -4,6 +4,6 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     include: ["src/**/*.test.{ts,tsx}"],
-    env: { NEXT_PUBLIC_SCIBIOM_API_URL: "http://127.0.0.1:8000" },
+    env: { VITE_SCIBIOM_API_URL: "http://127.0.0.1:8000" },
   },
 });

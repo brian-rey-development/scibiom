@@ -28,12 +28,6 @@ jobs:
         with:
           node-version-file: package.json
           cache: pnpm
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: apps/web/.next/cache
-          key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/src/**', 'apps/web/*.config.*') }}
-          restore-keys: |
-            next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
       # make setup creates .env from .env.example, which compose and migrations read
       - run: make setup
       - run: make db-up
