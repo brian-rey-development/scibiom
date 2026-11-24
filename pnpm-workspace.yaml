@@ -1,0 +1,4 @@
+packages:
+  - apps/web
+  - tools/*
+minimumReleaseAge: 1440

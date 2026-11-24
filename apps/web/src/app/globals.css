@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--color-stone-50);
+  --color-foreground: var(--color-stone-900);
+  --color-muted: var(--color-stone-600);
+  --font-sans: var(--font-geist-sans);
+}
+
+:root {
+  color-scheme: light;
+}

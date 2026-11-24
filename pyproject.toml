@@ -1,0 +1,118 @@
+[project]
+name = "scibiom"
+version = "0.0.0"
+requires-python = ">=3.14,<3.15"
+dependencies = ["scibiom-api", "scibiom-core", "scibiom-infrastructure"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+scibiom-api = { workspace = true }
+scibiom-core = { workspace = true }
+scibiom-infrastructure = { workspace = true }
+
+[tool.uv.workspace]
+members = ["apps/api", "packages/core", "packages/infrastructure"]
+
+[dependency-groups]
+dev = [
+    "deptry>=0.25.1",
+    "httpx2>=2.16.2",
+    "import-linter>=2.17",
+    "pyright>=1.1.414",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "ruff>=0.17.6",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["apps/api/src", "packages/core/src", "packages/infrastructure/src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D",       # docstring policy lives in AGENTS.md
+    "COM812",  # conflicts with the formatter
+    "ISC001",  # conflicts with the formatter
+    "CPY",     # no copyright headers
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 8
+
+[tool.ruff.lint.pylint]
+max-args = 5
+max-branches = 8
+max-statements = 20
+max-returns = 4
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel", "pydantic_settings.BaseSettings"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = [
+    "S101",    # pytest relies on bare assert
+    "PLR2004", # literal expected values are the point of an assertion
+    "INP001",  # test directories are not packages (--import-mode=importlib)
+]
+"**/scibiom_api/routes/**" = [
+    "TC001",   # FastAPI resolves handler annotations at runtime to build dependencies
+]
+"**/database/migrations/**" = [
+    "INP001",  # Alembic loads env.py and revisions by path, not as a package
+]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+include = ["apps/api", "packages"]
+reportImplicitOverride = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+reportImportCycles = "error"
+
+[tool.pytest.ini_options]
+testpaths = ["apps/*/tests", "packages/*/tests"]
+addopts = "-ra --strict-markers --strict-config --import-mode=importlib"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["integration: needs the local Postgres from compose.yaml"]
+xfail_strict = true
+filterwarnings = ["error"]
+
+[tool.importlinter]
+root_packages = ["scibiom_api", "scibiom_core", "scibiom_infrastructure"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers run api, then infrastructure, then core"
+type = "layers"
+layers = ["scibiom_api", "scibiom_infrastructure", "scibiom_core"]
+
+[[tool.importlinter.contracts]]
+name = "Core stays framework-free"
+type = "forbidden"
+source_modules = ["scibiom_core"]
+forbidden_modules = [
+    "fastapi",
+    "starlette",
+    "uvicorn",
+    "sqlalchemy",
+    "psycopg",
+    "alembic",
+    "pydantic",
+    "pydantic_settings",
+    "httpx",
+    "httpx2",
+]
+
+[[tool.importlinter.contracts]]
+name = "Infrastructure knows nothing about HTTP"
+type = "forbidden"
+source_modules = ["scibiom_infrastructure"]
+forbidden_modules = ["fastapi", "starlette", "uvicorn"]

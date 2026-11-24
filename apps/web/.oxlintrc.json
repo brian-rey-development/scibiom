@@ -1,0 +1,253 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["oxc", "typescript", "react", "nextjs", "jsx-a11y", "import", "unicorn", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "ignorePatterns": [".next", "next-env.d.ts", "src/core/api/schema.d.ts"],
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/prefer-readonly-parameter-types": "off",
+    "import/no-relative-parent-imports": "error",
+    "import/no-cycle": "error",
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": ["**/*.css"]
+      }
+    ],
+    "react/react-in-jsx-scope": "off",
+    "max-lines-per-function": [
+      "error",
+      {
+        "max": 20,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "max-lines": [
+      "error",
+      {
+        "max": 200,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/app/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules/*/**"],
+                "message": "app/ may only import a module through its root, @modules/<name>."
+              },
+              {
+                "group": ["@core/api/client"],
+                "message": "Only api/ may use the API client."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules", "@modules/**"],
+                "message": "core/ must not depend on modules."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/shared/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules", "@modules/**"],
+                "message": "shared/ must not depend on modules."
+              },
+              {
+                "group": ["@core", "@core/**"],
+                "message": "shared/ must not depend on core/."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/modules/*/*"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules/*/**"],
+                "message": "A module's index.ts reaches its own segments with ./ paths and never imports another module's internals."
+              },
+              {
+                "group": ["@core/api/client"],
+                "message": "Only api/ may use the API client."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/modules/*/types/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules/*/schemas", "@modules/*/schemas/**"],
+                "message": "types/ must not import schemas/."
+              },
+              {
+                "group": ["@modules/*/api", "@modules/*/api/**"],
+                "message": "types/ must not import api/."
+              },
+              {
+                "group": ["@modules/*/hooks", "@modules/*/hooks/**"],
+                "message": "types/ must not import hooks/."
+              },
+              {
+                "group": ["@modules/*/ui", "@modules/*/ui/**"],
+                "message": "types/ must not import ui/."
+              },
+              {
+                "group": ["@core/api", "@core/api/client"],
+                "message": "Only api/ may use the API client."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/modules/*/schemas/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules/*/api", "@modules/*/api/**"],
+                "message": "schemas/ must not import api/."
+              },
+              {
+                "group": ["@modules/*/hooks", "@modules/*/hooks/**"],
+                "message": "schemas/ must not import hooks/."
+              },
+              {
+                "group": ["@modules/*/ui", "@modules/*/ui/**"],
+                "message": "schemas/ must not import ui/."
+              },
+              {
+                "group": ["@core/api", "@core/api/client"],
+                "message": "Only api/ may use the API client."
+              },
+              {
+                "group": ["@core/api/schema"],
+                "message": "schemas/ must not import the generated schema, derive types in types/."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/modules/*/api/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules/*/hooks", "@modules/*/hooks/**"],
+                "message": "api/ must not import hooks/."
+              },
+              {
+                "group": ["@modules/*/ui", "@modules/*/ui/**"],
+                "message": "api/ must not import ui/."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/modules/*/hooks/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules/*/ui", "@modules/*/ui/**"],
+                "message": "hooks/ must not import ui/."
+              },
+              {
+                "group": ["@core/api", "@core/api/client"],
+                "message": "Only api/ may use the API client."
+              },
+              {
+                "group": ["@core/api/schema"],
+                "message": "hooks/ must not import the generated schema, derive types in types/."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/modules/*/ui/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@modules/*/api", "@modules/*/api/**"],
+                "message": "ui/ must not import api/."
+              },
+              {
+                "group": ["@core/api", "@core/api/client"],
+                "message": "Only api/ may use the API client."
+              },
+              {
+                "group": ["@core/api/schema"],
+                "message": "ui/ must not import the generated schema, derive types in types/."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

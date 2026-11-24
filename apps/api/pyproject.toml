@@ -1,0 +1,31 @@
+[project]
+name = "scibiom-api"
+version = "0.1.0"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "scibiom-core",
+    "scibiom-infrastructure",
+    "fastapi>=0.165.0",
+    "uvicorn[standard]>=0.54.0",
+    "pydantic>=2.14.4",
+    "pydantic-settings>=2.16.3",
+    "starlette>=1.10.0",
+    "sqlalchemy>=2.1.9",
+]
+
+[project.scripts]
+scibiom-openapi = "scibiom_api.openapi:main"
+
+[tool.uv.sources]
+scibiom-core = { workspace = true }
+scibiom-infrastructure = { workspace = true }
+
+[tool.deptry.per_rule_ignores]
+DEP002 = [
+    "uvicorn",    # the server process, started by the CLI and never imported
+    "sqlalchemy", # imported only under TYPE_CHECKING, which deptry does not scan
+]
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14.0"]
+build-backend = "uv_build"

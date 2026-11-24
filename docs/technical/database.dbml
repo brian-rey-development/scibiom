@@ -1,0 +1,23 @@
+Project scibiom {
+  database_type: 'PostgreSQL'
+  Note: '''
+    Current schema only. Add each table in the same change as its migration.
+
+    Conventions for every bounded context
+    - One Postgres schema per context, named after the context.
+    - No foreign keys across schemas.
+    - Primary keys are UUIDv7 values generated in Python with uuid.uuid7().
+    - Tenant-owned rows carry workspace_id.
+
+    Roles
+    - scibiom_owner owns the database and every schema, and runs migrations.
+    - scibiom_app reads and writes rows only in schemas whose migration grants it access, and cannot change the schema.
+    - scibiom_app has no privileges on the alembic schema.
+  '''
+}
+
+Table alembic.alembic_version {
+  version_num varchar(32) [pk, not null]
+
+  Note: 'Migration state. Created by Alembic in a schema env.py creates as scibiom_owner.'
+}

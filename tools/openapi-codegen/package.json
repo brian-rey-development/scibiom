@@ -1,0 +1,12 @@
+{
+  "name": "openapi-codegen",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "openapi-typescript ../../apps/api/openapi.json --output ../../apps/web/src/core/api/schema.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0",
+    "typescript": "~5.9.3"
+  }
+}
