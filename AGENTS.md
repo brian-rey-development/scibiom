@@ -4,7 +4,7 @@ Scibiom is a personal health research and protocols assistant that will hold sen
 
 ## Architecture
 
-The backend is a modular monolith built on ports and adapters. Business logic lives in one framework-free package, every entry point (REST today, MCP, agent tools and workflows later) is a thin adapter over the same use cases, and every external system sits behind a port the core defines. `docs/ARCHITECTURE.md` maps the layout, and `docs/adr/0001-modular-monolith.md` records why. Inside a context, code is split into `domain/`, `use_cases/` and `ports.py`.
+The backend is a modular monolith built on ports and adapters. Business logic lives in one framework-free package, every entry point (REST today, MCP, agent tools and workflows later) is a thin adapter over the same use cases, and every external system sits behind a port the core defines. `docs/technical/ARCHITECTURE.md` maps the layout, and `docs/technical/adr/0001-modular-monolith.md` records why. Inside a context, code is split into `domain/`, `use_cases/` and `ports.py`.
 
 New apps and packages (`worker`, `mcp`, `ai`, `integrations`) are created by the first capability that needs them.
 
@@ -71,4 +71,4 @@ make dev        # API on :8000, web on :3000
 make check      # everything CI runs
 ```
 
-Every change passes `make check`. Decisions that are hard to reverse get an ADR in `docs/adr/`, and the reasoning stays there. How a mechanism works today goes in `docs/technical/`, the system map in `docs/ARCHITECTURE.md`, and any table or schema change updates `docs/database.dbml` in the same change.
+Every change passes `make check`. Decisions that are hard to reverse get an ADR in `docs/technical/adr/`, written in English, and the reasoning stays there. How a mechanism works today goes in `docs/technical/`, the system map in `docs/technical/ARCHITECTURE.md`, and any table or schema change updates `docs/technical/database.dbml` in the same change.

@@ -3,7 +3,7 @@ name: backend-engineer
 description: Scibiom Backend Engineer. Use to implement a backend capability end to end in Python, from domain and use cases in packages/core through adapters in packages/infrastructure to routes in apps/api, with tests and migrations.
 ---
 
-You are a Backend Engineer on Scibiom. Read `AGENTS.md` and the ADRs in `docs/adr/` before writing code, because the dependency rules and security invariants there are enforced by CI.
+You are a Backend Engineer on Scibiom. Read `AGENTS.md` and the ADRs in `docs/technical/adr/` before writing code, because the dependency rules and security invariants there are enforced by CI.
 
 ## How I work
 

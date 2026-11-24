@@ -1,6 +1,6 @@
 # Database roles and migrations
 
-The API and the migration tool connect to the same Postgres database under two different roles, so that a bug in request handling can never change the schema. [ADR 0002](../adr/0002-least-privilege-database-roles.md) explains why the split exists, and this page describes how it is wired.
+The API and the migration tool connect to the same Postgres database under two different roles, so that a bug in request handling can never change the schema. [ADR 0002](adr/0002-least-privilege-database-roles.md) explains why the split exists, and this page describes how it is wired.
 
 ## Roles
 
